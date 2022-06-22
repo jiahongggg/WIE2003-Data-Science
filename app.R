@@ -7,6 +7,8 @@ library(shiny)
 library(shinydashboard)
 library(shinyjs)
 library(sodium)
+library(curl)
+library(rstudioapi)
 
 html_result_table <- '<div class="result_table">_html</div>'
 html_result <- '<div class="result">
@@ -47,6 +49,8 @@ html_result <- '<div class="result">
         '
 
 # Reading a CSV File
+
+
 economyData <-
   read.csv(
     "https://raw.githubusercontent.com/jiahongggg/WIE2003-Data-Science/main/data/economy.csv"
@@ -89,14 +93,30 @@ airline_name <-
 
 image <-
   c(
-    "https://github.com/jiahongggg/WIE2003-Data-Science/blob/main/image/spicejet.jpg?raw=true",
-    "https://github.com/jiahongggg/WIE2003-Data-Science/blob/main/image/airasia%20logo.png?raw=true",
-    "https://github.com/jiahongggg/WIE2003-Data-Science/blob/main/image/vistara.png?raw=true",
-    "https://github.com/jiahongggg/WIE2003-Data-Science/blob/main/image/go%20first.png?raw=true",
-    "https://github.com/jiahongggg/WIE2003-Data-Science/blob/main/image/indigo.jpg?raw=true",
-    "https://github.com/jiahongggg/WIE2003-Data-Science/blob/main/image/air%20india.png?raw=true",
-    "https://github.com/jiahongggg/WIE2003-Data-Science/blob/main/image/trujet.png?raw=true",
-    "https://github.com/jiahongggg/WIE2003-Data-Science/blob/main/image/starair.png?raw=true"
+    curl(
+      "https://github.com/jiahongggg/WIE2003-Data-Science/blob/main/image/spicejet.jpg?raw=true"
+    ),
+    curl(
+      "https://github.com/jiahongggg/WIE2003-Data-Science/blob/main/image/airasia%20logo.png?raw=true"
+    ),
+    curl(
+      "https://github.com/jiahongggg/WIE2003-Data-Science/blob/main/image/vistara.png?raw=true"
+    ),
+    curl(
+      "https://github.com/jiahongggg/WIE2003-Data-Science/blob/main/image/go%20first.png?raw=true"
+    ),
+    curl(
+      "https://github.com/jiahongggg/WIE2003-Data-Science/blob/main/image/indigo.jpg?raw=true"
+    ),
+    curl(
+      "https://github.com/jiahongggg/WIE2003-Data-Science/blob/main/image/air%20india.png?raw=true"
+    ),
+    curl(
+      "https://github.com/jiahongggg/WIE2003-Data-Science/blob/main/image/trujet.png?raw=true"
+    ),
+    curl(
+      "https://github.com/jiahongggg/WIE2003-Data-Science/blob/main/image/starair.png?raw=true"
+    )
   )
 
 web_link <- c(
@@ -361,7 +381,11 @@ server <- function(input, output, session) {
       if (!is.null(input$login)) {
         if (input$login > 0) {
           result <-
-            fromJSON(file = "https://raw.githubusercontent.com/jiahongggg/WIE2003-Data-Science/main/myJSON.json")
+            fromJSON(
+              file = curl(
+                "https://raw.githubusercontent.com/jiahongggg/WIE2003-Data-Science/main/myJSON.json"
+              )
+            )
           credentials = data.frame(
             username_id = result[[1]],
             passod   = result[[2]],
@@ -420,7 +444,11 @@ server <- function(input, output, session) {
           
           list_1 = vector(mode = "list", length = 3)
           result <-
-            fromJSON(file = "https://raw.githubusercontent.com/jiahongggg/WIE2003-Data-Science/main/myJSON.json")
+            fromJSON(
+              file = curl(
+                "https://raw.githubusercontent.com/jiahongggg/WIE2003-Data-Science/main/myJSON.json"
+              )
+            )
           credentials = data.frame(
             username_id = result[[1]],
             passod   = result[[2]],
@@ -435,7 +463,9 @@ server <- function(input, output, session) {
           myfile = toJSON(list_1)
           write(
             myfile,
-            "https://raw.githubusercontent.com/jiahongggg/WIE2003-Data-Science/main/myJSON.json"
+            curl(
+              "https://raw.githubusercontent.com/jiahongggg/WIE2003-Data-Science/main/myJSON.json"
+            )
           )
         }
       }
@@ -473,7 +503,9 @@ server <- function(input, output, session) {
           class = "active",
           fluidPage(
             includeCSS(
-              "https://raw.githubusercontent.com/jiahongggg/WIE2003-Data-Science/main/main.css"
+              curl(
+                "https://raw.githubusercontent.com/jiahongggg/WIE2003-Data-Science/main/main.css"
+              )
             ),
             sidebarLayout(
               sidebarPanel(
