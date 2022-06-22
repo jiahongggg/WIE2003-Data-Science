@@ -7,8 +7,6 @@ library(shiny)
 library(shinydashboard)
 library(shinyjs)
 library(sodium)
-library(curl)
-library(rstudioapi)
 
 html_result_table <- '<div class="result_table">_html</div>'
 html_result <- '<div class="result">
@@ -23,7 +21,7 @@ html_result <- '<div class="result">
                         </div>
                         <div class="lt_2_b">
                             _location
-                        </div>
+                        </div>main
                     </div>
                     <div class="lt_3">
                         _period
@@ -49,8 +47,6 @@ html_result <- '<div class="result">
         '
 
 # Reading a CSV File
-
-
 economyData <-
   read.csv(
     "https://raw.githubusercontent.com/jiahongggg/WIE2003-Data-Science/main/data/economy.csv"
@@ -63,8 +59,6 @@ businessData <-
 colnames(economyData)[1] <- "date"
 colnames(businessData)[1] <- "date"
 
-img_link  <- c('')
-passkey <- sha256(charToRaw("password123"))
 # Replace all the matches of a Pattern from a String
 economyData$price <- gsub(",", "", economyData$price)
 businessData$price <- gsub(",", "", businessData$price)
@@ -75,8 +69,10 @@ businessData$price <- strtoi(businessData$price)
 
 # Convert to RM and round to two decimal places
 # Find min and max
-min <- round(min(economyData$price) * 0.056, 0) - 1
-max <- round(max(businessData$price) * 0.056, 0) + 1
+min <- min(economyData$price)
+max <- max(businessData$price)
+#min <- round(min(economyData$price) * 0.056, 0) - 1
+#max <- round(max(businessData$price) * 0.056, 0) + 1
 
 
 airline_name <-
@@ -93,30 +89,14 @@ airline_name <-
 
 image <-
   c(
-    curl(
-      "https://github.com/jiahongggg/WIE2003-Data-Science/blob/main/image/spicejet.jpg?raw=true"
-    ),
-    curl(
-      "https://github.com/jiahongggg/WIE2003-Data-Science/blob/main/image/airasia%20logo.png?raw=true"
-    ),
-    curl(
-      "https://github.com/jiahongggg/WIE2003-Data-Science/blob/main/image/vistara.png?raw=true"
-    ),
-    curl(
-      "https://github.com/jiahongggg/WIE2003-Data-Science/blob/main/image/go%20first.png?raw=true"
-    ),
-    curl(
-      "https://github.com/jiahongggg/WIE2003-Data-Science/blob/main/image/indigo.jpg?raw=true"
-    ),
-    curl(
-      "https://github.com/jiahongggg/WIE2003-Data-Science/blob/main/image/air%20india.png?raw=true"
-    ),
-    curl(
-      "https://github.com/jiahongggg/WIE2003-Data-Science/blob/main/image/trujet.png?raw=true"
-    ),
-    curl(
-      "https://github.com/jiahongggg/WIE2003-Data-Science/blob/main/image/starair.png?raw=true"
-    )
+    "https://github.com/jiahongggg/WIE2003-Data-Science/blob/main/image/spicejet.jpg?raw=true",
+    "https://github.com/jiahongggg/WIE2003-Data-Science/blob/main/image/airasia%20logo.png?raw=true",
+    "https://github.com/jiahongggg/WIE2003-Data-Science/blob/main/image/vistara.png?raw=true",
+    "https://github.com/jiahongggg/WIE2003-Data-Science/blob/main/image/go%20first.png?raw=true",
+    "https://github.com/jiahongggg/WIE2003-Data-Science/blob/main/image/indigo.jpg?raw=true",
+    "https://github.com/jiahongggg/WIE2003-Data-Science/blob/main/image/air%20india.png?raw=true",
+    "https://github.com/jiahongggg/WIE2003-Data-Science/blob/main/image/trujet.png?raw=true",
+    "https://github.com/jiahongggg/WIE2003-Data-Science/blob/main/image/starair.png?raw=true"
   )
 
 web_link <- c(
@@ -139,66 +119,82 @@ img_info <-
 total_origin <- unique(economyData$from)
 total_destination <- unique(economyData$to)
 total_airline <- unique(economyData$airline)
-# Main login screen
-loginpage <-
-  div(
-    id = "loginpage",
-    style = "width: 500px; max-width: 100%; margin: 0 auto; padding: 20px;",
-    wellPanel(
-      tags$h2("LOG IN", class = "text-center", style = "padding-top: 0;color:#333; font-weight:600;"),
-      textInput(
-        "userName",
-        placeholder = "Username",
-        label = tagList(icon("user"), "Username")
+
+
+ui <- fluidPage(
+  #includeCSS("https://raw.githubusercontent.com/PuaZhiXian/DS_grp_assign/main/main.css"),
+  includeCSS(
+    "https://raw.githubusercontent.com/jiahongggg/WIE2003-Data-Science/main/main.css"
+  ),
+  sidebarLayout(
+    sidebarPanel(
+      selectInput(
+        inputId = "origin",
+        label = "Origin",
+        choices = total_origin
       ),
-      passwordInput(
-        "passwd",
-        placeholder = "Password",
-        label = tagList(icon("unlock-alt"), "Password")
+      selectInput(
+        inputId = 'destination',
+        label = "Destination",
+        choices = total_destination
       ),
-      br(),
-      div(
-        style = "text-align: center;",
-        actionButton(
-          "login",
-          "SIGN IN",
-          style = "color: white; background-color:#3c8dbc;
-                                 padding: 10px 15px; width: 150px; cursor: pointer;
-                                 font-size: 18px; font-weight: 600;"
-        ),
-        shinyjs::hidden(div(
-          id = "nomatch",
-          tags$p(
-            "Oops! Incorrect username or password!",
-            style = "color: red; font-weight: 600;
-                                            padding-top: 5px;font-size:16px;",
-            class = "text-center"
-          )
-        )),
+      selectInput(
+        inputId = 'type',
+        label = "Cabin class",
+        choices = c('Economy', 'Business')
       ),
-      br(),
-      div(
-        style = "text-align: center;",
-        actionButton(
-          "register",
-          "SIGN UP",
-          style = "color: white; background-color:#3c8dbc;
-                                 padding: 10px 15px; width: 150px; cursor: pointer;
-                                 font-size: 18px; font-weight: 600;"
-        )
-      )
-    )
+      dateInput(
+        inputId = 'des_date',
+        label = "Depart",
+        min = "2022-02-11",
+        max = "2022-03-31",
+        format = "dd/mm/yyyy"
+      ),
+      
+      checkboxGroupInput(
+        inputId = 'airline',
+        label = "choose airline",
+        choiceNames = total_airline,
+        choiceValues = total_airline,
+        inline = TRUE
+      ),
+      sliderInput(
+        inputId = 'range_price',
+        label = 'Price (INR)',
+        value = c(min, max),
+        min = min,
+        max = max,
+        dragRange = TRUE
+      ),
+      selectInput(
+        inputId = 'sort_para',
+        label = '',
+        choices = c('Price', 'Time taken', 'Departure time')
+      ),
+      actionButton(inputId = 'sort',
+                   label = "Sort")
+    ),
+    mainPanel(tabsetPanel(
+      tabPanel("Main Page", uiOutput("below_table")),
+      tabPanel(
+        "Summary",
+        textOutput("text1"),
+        verbatimTextOutput("Esummary"),
+        textOutput("text2"),
+        verbatimTextOutput("Bsummary"),
+        plotOutput("EDistribution"),
+        plotOutput("BDistribution"),
+        plotOutput("Economy_Box_Plot"),
+        plotOutput("Business_Box_Plot")
+      ),
+      tabPanel("Dataset", dataTableOutput("table"))
+    ))
+    
   )
+)
 
-
-header <-
-  dashboardHeader(title = "Simple Dashboard", uiOutput("logoutbtn"))
-
-sidebar <- dashboardSidebar(uiOutput("sidebarpanel"))
-body <- dashboardBody(shinyjs::useShinyjs(), uiOutput("body"))
-ui <- dashboardPage(header, sidebar, body, skin = "blue")
-
-server <- function(input, output, session) {
+# Server logic
+server <- function(input, output) {
   observeEvent(input$sort,  {
     output$below_table <- renderUI({
       origin <- input$origin
@@ -211,45 +207,45 @@ server <- function(input, output, session) {
       temp_dataset <- NULL
       
       if (type == "Economy") {
-        temp_dataset <- economyData[which(economyData$from == origin), ]
-        temp_dataset <-
-          temp_dataset[which(temp_dataset$to == destination),]
-        
-        temp_dataset <-
-          temp_dataset[which(temp_dataset$date == format(des_date, format = "%d/%m/%Y")),]
-        print(format(des_date, format = "%d/%m/%Y"))
-        print(nrow(temp_dataset))
-        temp_dataset <-
-          temp_dataset[which(strtoi(temp_dataset$price) > strtoi(range_price[1])),]
-        temp_dataset <-
-          temp_dataset[which(strtoi(temp_dataset$price) < strtoi(range_price[2])),]
-        temp_dataset <-
-          temp_dataset[temp_dataset$airline %in% airline,]
-      }
-      else{
-        temp_dataset <- businessData[which(businessData$from == origin),]
+        temp_dataset <- economyData[which(economyData$from == origin),]
         temp_dataset <-
           temp_dataset[which(temp_dataset$to == destination), ]
+        
         temp_dataset <-
           temp_dataset[which(temp_dataset$date == format(des_date, format = "%d/%m/%Y")), ]
         print(format(des_date, format = "%d/%m/%Y"))
         print(nrow(temp_dataset))
         temp_dataset <-
-          temp_dataset[which(strtoi(temp_dataset$price) > strtoi(range_price[1]) /
-                               0.056), ]
+          temp_dataset[which(strtoi(temp_dataset$price) > strtoi(range_price[1])), ]
         temp_dataset <-
-          temp_dataset[which(strtoi(temp_dataset$price) < strtoi(range_price[2]) /
-                               0.056), ]
+          temp_dataset[which(strtoi(temp_dataset$price) < strtoi(range_price[2])), ]
         temp_dataset <-
           temp_dataset[temp_dataset$airline %in% airline, ]
       }
+      else{
+        temp_dataset <- businessData[which(businessData$from == origin), ]
+        temp_dataset <-
+          temp_dataset[which(temp_dataset$to == destination),]
+        temp_dataset <-
+          temp_dataset[which(temp_dataset$date == format(des_date, format = "%d/%m/%Y")),]
+        print(format(des_date, format = "%d/%m/%Y"))
+        print(nrow(temp_dataset))
+        temp_dataset <-
+          temp_dataset[which(strtoi(temp_dataset$price) > strtoi(range_price[1]) /
+                               1),]
+        temp_dataset <-
+          temp_dataset[which(strtoi(temp_dataset$price) < strtoi(range_price[2]) /
+                               1),]
+        temp_dataset <-
+          temp_dataset[temp_dataset$airline %in% airline,]
+      }
       if (sort_para == 'Price') {
-        temp_dataset <- temp_dataset[order(temp_dataset$price),]
+        temp_dataset <- temp_dataset[order(temp_dataset$price), ]
       } else if (sort_para == 'Time taken') {
-        temp_dataset <- temp_dataset[order(temp_dataset$time_taken),]
+        temp_dataset <- temp_dataset[order(temp_dataset$time_taken), ]
       }
       else if (sort_para == 'Departure time') {
-        temp_dataset <- temp_dataset[order(temp_dataset$dep_time),]
+        temp_dataset <- temp_dataset[order(temp_dataset$dep_time), ]
       }
       
       result_contain <- ''
@@ -259,31 +255,31 @@ server <- function(input, output, session) {
           temp <- html_result
           temp <-
             gsub('_location',
-                 paste(temp_dataset[y, ]$from, paste('-', temp_dataset[y, ]$to)),
+                 paste(temp_dataset[y,]$from, paste('-', temp_dataset[y,]$to)),
                  temp)
           temp <-
-            gsub('_price', paste('RM', formatC(round(
-              strtoi(temp_dataset[y, ]$price) * 1, 2
+            gsub('_price', paste('INR', formatC(round(
+              strtoi(temp_dataset[y,]$price) * 1, 2
             ), 2, format = 'f')) , temp)
           temp <-
             gsub('_period', paste0(
-              as.integer(temp_dataset[y, ]$time_taken / 60),
+              as.integer(temp_dataset[y,]$time_taken / 60),
               paste("h", paste0(
-                as.integer(temp_dataset[y, ]$time_taken %% 60), 'm'
+                as.integer(temp_dataset[y,]$time_taken %% 60), 'm'
               ))
             ), temp)
           temp <-
             gsub('_time',
                  paste(
-                   temp_dataset[y, ]$dep_time,
-                   paste(' - ', temp_dataset[y, ]$arr_time)
+                   temp_dataset[y,]$dep_time,
+                   paste(' - ', temp_dataset[y,]$arr_time)
                  ),
                  temp)
           temp <-
-            gsub('_imglink', img_info[which(img_info$airline_name == temp_dataset[y, ]$airline), ]$image, temp)
+            gsub('_imglink', img_info[which(img_info$airline_name == temp_dataset[y,]$airline),]$image, temp)
           temp <-
-            gsub('_airline_website', img_info[which(img_info$airline_name == temp_dataset[y, ]$airline), ]$web_link, temp)
-          temp <- gsub('_airline', temp_dataset[y, ]$airline, temp)
+            gsub('_airline_website', img_info[which(img_info$airline_name == temp_dataset[y,]$airline),]$web_link, temp)
+          temp <- gsub('_airline', temp_dataset[y,]$airline, temp)
           
           result_contain <- paste(result_contain, temp, sep = ' ')
         }
@@ -333,7 +329,7 @@ server <- function(input, output, session) {
     )
   })
   economyData$price <- gsub(",", "", economyData$price)
-  economyData$price <- round(strtoi(economyData$price) * 0.056, 0)
+  economyData$price <- round(strtoi(economyData$price) * 1, 0)
   economyBoxPlot = arrange(
     filter(
       economyData ,
@@ -348,10 +344,10 @@ server <- function(input, output, session) {
            aes(x = airline,
                y = price,
                fill = airline)) +
-      geom_boxplot() + ggtitle("Flight Price by Airline (Economy)") + xlab("airline") + ylab("price (RM)")
+      geom_boxplot() + ggtitle("Flight Price by Airline (Economy)") + xlab("airline") + ylab("price (INR)")
   })
   businessData$price <- gsub(",", "", businessData$price)
-  businessData$price <- round(strtoi(businessData$price) * 0.056, 0)
+  businessData$price <- round(strtoi(businessData$price) * 1, 0)
   businessBoxPlot = arrange(
     filter(
       businessData ,
@@ -366,235 +362,13 @@ server <- function(input, output, session) {
            aes(x = airline,
                y = price,
                fill = airline)) +
-      geom_boxplot() + ggtitle("Flight Price by Airline (Business)") + xlab("airline") + ylab("price (RM)")
+      geom_boxplot() + ggtitle("Flight Price by Airline (Business)") + xlab("airline") + ylab("price (INR)")
   })
   
   output$table = DT::renderDataTable({
     economyData
   })
-  
-  login = FALSE
-  USER <- reactiveValues(login = login)
-  
-  observe({
-    if (USER$login == FALSE) {
-      if (!is.null(input$login)) {
-        if (input$login > 0) {
-          result <-
-            fromJSON(
-              file = curl(
-                "https://raw.githubusercontent.com/jiahongggg/WIE2003-Data-Science/main/myJSON.json"
-              )
-            )
-          credentials = data.frame(
-            username_id = result[[1]],
-            passod   = result[[2]],
-            permission  = result[[3]],
-            stringsAsFactors = F
-          )
-          
-          Username <- isolate(input$userName)
-          Password <- isolate(input$passwd)
-          if (length(which(credentials$username_id == Username)) == 1) {
-            print(credentials$passod)
-            pasmatch  <-
-              credentials["passod"][which(credentials$username_id == Username), ]
-            print(pasmatch)
-            pasverify <- password_verify(pasmatch, Password)
-            print(pasverify)
-            if (pasverify) {
-              USER$login <- TRUE
-            } else {
-              shinyjs::toggle(
-                id = "nomatch",
-                anim = TRUE,
-                time = 1,
-                animType = "fade"
-              )
-              shinyjs::delay(
-                3000,
-                shinyjs::toggle(
-                  id = "nomatch",
-                  anim = TRUE,
-                  time = 1,
-                  animType = "fade"
-                )
-              )
-            }
-          } else {
-            shinyjs::toggle(
-              id = "nomatch",
-              anim = TRUE,
-              time = 1,
-              animType = "fade"
-            )
-            shinyjs::delay(
-              3000,
-              shinyjs::toggle(
-                id = "nomatch",
-                anim = TRUE,
-                time = 1,
-                animType = "fade"
-              )
-            )
-          }
-        }
-        if (input$register > 0) {
-          USER$login <- TRUE
-          
-          list_1 = vector(mode = "list", length = 3)
-          result <-
-            fromJSON(
-              file = curl(
-                "https://raw.githubusercontent.com/jiahongggg/WIE2003-Data-Science/main/myJSON.json"
-              )
-            )
-          credentials = data.frame(
-            username_id = result[[1]],
-            passod   = result[[2]],
-            permission  = result[[3]],
-            stringsAsFactors = F
-          )
-          # assigning different objects to the list
-          list_1[[1]] = c(credentials$username_id, input$userName)
-          list_1[[2]] = c(credentials$passod,
-                          password_store(input$passwd))
-          list_1[[3]] = c(credentials$permission, "basic")
-          myfile = toJSON(list_1)
-          write(
-            myfile,
-            curl(
-              "https://raw.githubusercontent.com/jiahongggg/WIE2003-Data-Science/main/myJSON.json"
-            )
-          )
-        }
-      }
-    }
-  })
-  
-  output$logoutbtn <- renderUI({
-    req(USER$login)
-    tags$li(
-      a(icon("fa fa-sign-out"), "Logout",
-        href = "javascript:window.location.reload(true)"),
-      class = "dropdown",
-      style = "background-color: #eee !important; border: 0;
-                    font-weight: bold; margin:5px; padding: 10px;"
-    )
-  })
-  
-  output$sidebarpanel <- renderUI({
-    if (USER$login == TRUE) {
-      sidebarMenu(
-        menuItem("Main Page", tabName = "dashboard"),
-        menuItem("Summary", tabName = "summary"),
-        menuItem("Dataset", tabName = "dataset")
-        
-      )
-    }
-  })
-  
-  output$body <- renderUI({
-    if (USER$login == TRUE) {
-      tabItems(
-        # First tab
-        tabItem(
-          tabName = "dashboard",
-          class = "active",
-          fluidPage(
-            includeCSS(
-              curl(
-                "https://raw.githubusercontent.com/jiahongggg/WIE2003-Data-Science/main/main.css"
-              )
-            ),
-            sidebarLayout(
-              sidebarPanel(
-                selectInput(
-                  inputId = "origin",
-                  label = "Origin",
-                  choices = total_origin
-                ),
-                selectInput(
-                  inputId = 'destination',
-                  label = "Destination",
-                  choices = total_destination
-                ),
-                selectInput(
-                  inputId = 'type',
-                  label = "Cabin class",
-                  choices = c('Economy', 'Business')
-                ),
-                dateInput(
-                  inputId = 'des_date',
-                  label = "Depart",
-                  min = "2022-02-11",
-                  max = "2022-03-31",
-                  format = "dd/mm/yyyy"
-                ),
-                
-                checkboxGroupInput(
-                  inputId = 'airline',
-                  label = "choose airline",
-                  choiceNames = total_airline,
-                  choiceValues = total_airline,
-                  inline = TRUE
-                ),
-                sliderInput(
-                  inputId = 'range_price',
-                  label = 'Price (RM)',
-                  value = c(min, max),
-                  min = min,
-                  max = max,
-                  dragRange = TRUE
-                ),
-                selectInput(
-                  inputId = 'sort_para',
-                  label = '',
-                  choices = c('Price', 'Time taken', 'Departure time')
-                ),
-                actionButton(inputId = 'sort',
-                             label = "Sort")
-              ),
-              mainPanel(uiOutput("below_table"))
-              
-            )
-          )
-        ),
-        
-        # Second tab
-        tabItem(
-          tabName = "summary",
-          fluidRow(
-            textOutput("text1"),
-            verbatimTextOutput("Esummary"),
-            textOutput("text2"),
-            verbatimTextOutput("Bsummary"),
-            plotOutput("EDistribution"),
-            plotOutput("BDistribution"),
-            plotOutput("Economy_Box_Plot"),
-            plotOutput("Business_Box_Plot")
-          )
-        ),
-        tabItem(tabName = "dataset",
-                fluidRow(dataTableOutput("table")))
-      )
-    }
-    else {
-      loginpage
-    }
-  })
-  
-  output$results <-  DT::renderDataTable({
-    datatable(iris, options = list(autoWidth = TRUE,
-                                   searching = FALSE))
-  })
-  
-  output$results2 <-  DT::renderDataTable({
-    datatable(mtcars, options = list(autoWidth = TRUE,
-                                     searching = FALSE))
-  })
-  
-  
 }
 
-runApp(list(ui = ui, server = server), launch.browser = TRUE)
+# Complete app with UI and server components
+shinyApp(ui, server)
